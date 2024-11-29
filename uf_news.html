@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JSON Viewer</title>
+</head>
+<body>
+    <pre id="json-output"></pre>
+    <script>
+        fetch('news.json')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('json-output').textContent = JSON.stringify(data, null, 4);
+            });
+    </script>
+</body>
+</html>

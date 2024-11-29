@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-import http.client, urllib.parse, os, json, requests
+import http.client, urllib.parse, os, json, requests, pytz
 from datetime import date, timedelta
 
 load_dotenv()
@@ -18,12 +18,11 @@ def get_news_data():
     news_conn = http.client.HTTPConnection('api.mediastack.com')
     news_params = urllib.parse.urlencode({
         'access_key': os.getenv('MEDIASTACK_API_KEY'),
-        'countries': 'us',
-        'categories': 'general',
-        'sort': 'published_desc',
         'languages': 'en',
-        'limit': 10,
-        })
+        'sort': 'popularity',
+        'date': str(date.today()),
+        'limit': 25,              
+    })
     news_conn.request('GET', '/v1/news?{}'.format(news_params))
     news_result = news_conn.getresponse()
     news_data = news_result.read()
@@ -60,11 +59,46 @@ def get_weather_data():
     weather_data = weather_result.read()
     return weather_data
 
+def uf_extract_fields(data):
+    extracted = []
+    for item in data:
+        # Extract the fields you want, providing default values if the field is missing
+        extracted.append({
+            'ts_start': item.get('ts_start'),
+            'ts_end': item.get('ts_end', None),  # Use None if ts_end is not present
+            'title': item.get('title', 'No Title'),
+            'location': item.get('location', 'No Location'),
+            'summary': item.get('summary', 'No Summary'),
+        })
+    return extracted
+
 def main():
-    uf = get_uf_news_data()
+    # uf = get_uf_news_data()
+    # uf_extracted = uf_extract_fields(uf)
+    
     news = get_news_data()
-    stock = get_stock_data()
-    weather = get_weather_data()
+    
+    # stock = get_stock_data()
+    # weather = get_weather_data()
+    
+    # with open("uf_news.json", "w") as uf_file:
+    #     json.dump(uf_extracted, uf_file, indent=4)  
+    
+    with open("news.json", "w") as news_file:
+        json.dump(json.loads(news), news_file, indent=4)  
+    
+    # if stock:
+    #     with open("stock.json", "w") as stock_file:
+    #         json.dump(json.loads(stock), stock_file, indent=4)  
+    # else:
+    #     print("Stock data not available for weekends.")
+    
+    # with open("weather.json", "w") as weather_file:
+    #     json.dump(json.loads(weather), weather_file, indent=4)  
+    
+    print("All JSON files have been saved. Open your HTML page to view them.")
+
+
     
 if __name__ == '__main__':
     main()
